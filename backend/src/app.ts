@@ -29,7 +29,9 @@ export function createApp(): Express {
   );
   app.use(
     cors({
-      origin: env.corsOrigins,
+      // Accept any origin in production so deployments on any subdomain work.
+      // The API is public read-only (no auth, no mutations) so this is safe.
+      origin: env.isProd ? true : env.corsOrigins,
       methods: ['GET', 'OPTIONS'],
       allowedHeaders: ['Content-Type'],
     }),
