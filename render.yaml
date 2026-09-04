@@ -1,0 +1,26 @@
+# Render blueprint — provisions the API web service + a managed Postgres.
+# New → Blueprint → pick this repo. Set CORS_ORIGINS to your Vercel URL after.
+services:
+  - type: web
+    name: onefi-marketplace-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install && npm run build && npx prisma migrate deploy && npm run db:seed
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://your-frontend.vercel.app
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onefi-marketplace-db
+          property: connectionString
+
+databases:
+  - name: onefi-marketplace-db
+    plan: free
+    databaseName: onefi_marketplace
+    user: onefi

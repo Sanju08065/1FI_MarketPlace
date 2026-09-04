@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: #140e32;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Branded backdrop — visible around the centred app frame on larger screens */
+  background-color: #edeaf6;
+  background-image:
+    radial-gradient(55% 45% at 12% -5%, rgba(113, 44, 220, 0.12), transparent 60%),
+    radial-gradient(50% 45% at 105% 105%, rgba(113, 44, 220, 0.1), transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+:focus-visible {
+  outline: 2px solid #712cdc;
+  outline-offset: 2px;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* subtle purple mesh used behind the app shell */
+  .bg-app {
+    background-color: #ffffff;
+    background-image: radial-gradient(120% 60% at 50% -10%, #f5f0ff 0%, rgba(245, 240, 255, 0) 60%);
+  }
+}
+
+/* Skeleton shimmer */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: #eceaf3;
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Placed-screen success ring (centred on the badge, expands + fades) */
+@keyframes success-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.animate-success-ring {
+  animation: success-ring 1.3s ease-out forwards;
+}

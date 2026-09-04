@@ -1,0 +1,24 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Next.js ───────────────────────────────────────────────────
+.next/
+out/
+
+# ── TypeScript build output ────────────────────────────────────
+dist/
+*.tsbuildinfo
+
+# ── Environment files (never commit real secrets) ─────────────
+.env
+.env.local
+.env.*.local
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
