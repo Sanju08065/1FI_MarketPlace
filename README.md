@@ -14,7 +14,7 @@ The UI matches the 1Fi app design language (brand purple `#712CDC`, rounded card
 |---|---|
 | Backend API | https://backend-257m.onrender.com |
 | Swagger docs | https://backend-257m.onrender.com/api/docs |
-| Frontend | *(Vercel URL — deploy next)* |
+| Frontend | https://frontend-nqyp.onrender.com |
 
 ---
 
