@@ -8,6 +8,16 @@ The UI matches the 1Fi app design language (brand purple `#712CDC`, rounded card
 
 ---
 
+## 🌐 Live URLs
+
+| Service | URL |
+|---|---|
+| Backend API | https://backend-257m.onrender.com |
+| Swagger docs | https://backend-257m.onrender.com/api/docs |
+| Frontend | *(Vercel URL — deploy next)* |
+
+---
+
 ## ✨ Highlights
 
 - **Correct EMI engine** — EMI plans are stored as *templates* (tenure + rate + cashback). The monthly instalment is **computed from the selected variant’s real price**, both on the server and (instantly) on the client when you switch variants.
