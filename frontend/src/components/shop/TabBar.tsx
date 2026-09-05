@@ -1,28 +1,32 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 export type ShopTab = 'brands' | 'nearby' | 'marketplace';
 
 const TABS: { id: ShopTab; label: string }[] = [
-  { id: 'brands', label: 'Top Brands' },
-  { id: 'nearby', label: 'Nearby Stores' },
+  { id: 'brands',      label: 'Top Brands'     },
+  { id: 'nearby',      label: 'Nearby Stores'  },
   { id: 'marketplace', label: '1Fi Marketplace' },
 ];
 
-export function TabBar({
-  active,
-  onChange,
-}: {
+interface TabBarProps {
   active: ShopTab;
   onChange: (tab: ShopTab) => void;
-}) {
+}
+
+/**
+ * 3-tab pill bar — matches the 1Fi app design from the screenshot:
+ * - Lavender (#f5f0ff) container with soft shadow
+ * - Active tab: white rounded pill + purple underline bar below label
+ * - Inactive tab: plain text, no background
+ */
+export function TabBar({ active, onChange }: TabBarProps) {
   return (
     <div
       role="tablist"
       aria-label="Shop sections"
-      className="flex gap-1.5 rounded-full border border-brand-100 bg-brand-50 p-1.5 shadow-[0_1px_3px_rgba(113,44,220,0.06)]"
+      className="flex gap-1 rounded-full bg-[#f0ebff] p-1 shadow-[0_1px_4px_rgba(113,44,220,0.08)]"
     >
       {TABS.map(({ id, label }) => {
         const isActive = active === id;
@@ -34,18 +38,17 @@ export function TabBar({
             aria-selected={isActive}
             onClick={() => onChange(id)}
             className={cn(
-              'relative flex-1 rounded-full py-[11px] text-center text-[12px] font-semibold tracking-[-0.005em] transition-colors',
-              isActive ? 'text-brand' : 'text-ink-muted hover:text-ink-soft',
+              'relative flex flex-1 flex-col items-center justify-center rounded-full py-[10px] text-[12.5px] font-semibold tracking-[-0.005em] transition-colors duration-150',
+              isActive
+                ? 'bg-white text-brand shadow-[0_1px_4px_rgba(20,14,50,0.10)]'
+                : 'text-zinc-500 hover:text-ink-soft',
             )}
           >
+            <span>{label}</span>
+            {/* Purple underline dot — only visible on active */}
             {isActive && (
-              <motion.span
-                layoutId="shopTabPill"
-                className="absolute inset-0 rounded-full bg-white shadow-tab"
-                transition={{ type: 'spring', damping: 30, stiffness: 350 }}
-              />
+              <span className="absolute bottom-[5px] left-1/2 h-[2.5px] w-5 -translate-x-1/2 rounded-full bg-brand" />
             )}
-            <span className="relative z-10">{label}</span>
           </button>
         );
       })}
