@@ -36,13 +36,17 @@ export function ShopContent() {
           }}
         />
         {/* soft bottom fade so the banner transitions cleanly into white */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white/60 to-transparent" />
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white/40 to-transparent" />
       </section>
 
-      {/* ── Tab bar + content, padded inside the shell ── */}
-      <div className="flex flex-col gap-4 px-4 pt-4">
+      {/* ── Tab bar floats over the banner's bottom edge: half sits on the
+          banner, half spills below it (negative margin + z-10) ── */}
+      <div className="relative z-10 -mt-7 px-4">
         <TabBar active={tab} onChange={setTab} />
+      </div>
 
+      {/* ── Tab content, padded inside the shell ── */}
+      <div className="px-4 pt-4">
         <div className="min-h-[52svh]">
           {tab === 'brands' && (
             <ComingSoon

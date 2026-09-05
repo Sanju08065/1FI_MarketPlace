@@ -13,20 +13,12 @@ const ITEMS = [
   { title: 'Profile',  href: '/profile',      Icon: User },
 ] as const;
 
-/**
- * Bottom navigation — matches the 1Fi app design from the screenshot:
- * - White floating card with rounded top corners and a subtle shadow
- * - Active tab: purple icon + label + small purple underline bar below label
- * - Inactive tab: grey icon + label, no indicator
- */
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-center">
-      <div
-        className="safe-bottom flex w-full max-w-[480px] items-end justify-around rounded-t-[22px] bg-white px-2 pb-1 pt-1 shadow-[0_-4px_20px_rgba(20,14,50,0.09)] sm:border-x sm:border-zinc-200/60"
-      >
+      <div className="safe-bottom flex w-full max-w-[480px] items-stretch justify-around rounded-t-[24px] bg-white px-1 pb-1 pt-2 shadow-[0_-6px_24px_rgba(20,14,50,0.12)] sm:border-x sm:border-zinc-200/60">
         {ITEMS.map(({ title, href, Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
@@ -34,24 +26,24 @@ export function BottomNav() {
               key={href}
               href={href}
               prefetch={false}
-              className="flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] font-semibold tracking-[0.01em] transition-colors"
+              className="flex flex-col items-center gap-[2px] px-2 py-1 text-[10px] font-semibold tracking-[0.01em]"
             >
-              <Icon
-                className={cn(
-                  'h-[22px] w-[22px] transition-colors',
-                  active ? 'text-brand stroke-[2.3]' : 'text-zinc-400 stroke-[1.8]',
-                )}
-              />
-              <span className={cn('transition-colors', active ? 'text-brand' : 'text-zinc-400')}>
-                {title}
-              </span>
-              {/* Purple underline indicator — mirrors the 1Fi app screenshot */}
+              {/* Purple underline is ABOVE the icon (between icon and top of nav) */}
               <span
                 className={cn(
-                  'mt-0.5 h-[2.5px] w-5 rounded-full bg-brand transition-opacity duration-150',
+                  'mb-[2px] h-[2.5px] w-5 rounded-full bg-[#712CDC] transition-opacity duration-150',
                   active ? 'opacity-100' : 'opacity-0',
                 )}
               />
+              <Icon
+                className={cn(
+                  'h-[23px] w-[23px]',
+                  active ? 'text-[#712CDC] stroke-[2.2]' : 'text-zinc-400 stroke-[1.75]',
+                )}
+              />
+              <span className={cn('mt-[1px]', active ? 'text-[#712CDC]' : 'text-zinc-400')}>
+                {title}
+              </span>
             </Link>
           );
         })}
