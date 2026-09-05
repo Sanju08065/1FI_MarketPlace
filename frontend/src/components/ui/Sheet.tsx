@@ -43,18 +43,18 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="fixed inset-x-0 bottom-0 z-[70] mx-auto max-h-[85svh] w-full max-w-[480px] overflow-hidden rounded-t-3xl bg-white shadow-sheet"
+            className="fixed inset-x-0 bottom-0 z-[70] mx-auto flex max-h-[90svh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-sheet"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 34, stiffness: 360 }}
           >
-            <div className="flex flex-col">
-              <div className="flex items-center justify-center pt-3">
+            <div className="flex flex-col overflow-hidden">
+              <div className="flex shrink-0 items-center justify-center pt-3">
                 <span className="h-1.5 w-10 rounded-full bg-zinc-200" />
               </div>
               {title && (
-                <div className="flex items-center justify-between px-5 pb-2 pt-3">
+                <div className="flex shrink-0 items-center justify-between px-5 pb-2 pt-3">
                   <h2 className="text-[16px] font-bold text-ink">{title}</h2>
                   <button
                     type="button"
@@ -66,7 +66,7 @@ export function Sheet({
                   </button>
                 </div>
               )}
-              <div className="safe-bottom overflow-y-auto px-5 pb-5">{children}</div>
+              <div className="safe-bottom overflow-y-auto px-5 pb-6">{children}</div>
             </div>
           </motion.div>
         </>
