@@ -28,6 +28,11 @@ export function useProducts(search: string) {
   const catalogueQuery = useQuery({
     queryKey: ['products', 'catalogue'],
     queryFn: () => listProducts({ limit: 50 }),
+    // Catalogue is stable — don't refetch within the same session.
+    // This also prevents the duplicate canceled request from React
+    // strict-mode double-mount in development.
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 
   // Stable array ref — empty array only when catalogue hasn't loaded yet.
