@@ -5,14 +5,15 @@ import { getProduct, resolveImageUrl } from '@/lib/api';
 import { ProductDetail } from './ProductDetail';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // Dedupe the fetch across generateMetadata + the page render.
 const loadProduct = cache((slug: string) => getProduct(slug).catch(() => null));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await loadProduct(params.slug);
+  const { slug } = await params;
+  const product = await loadProduct(slug);
   if (!product) return { title: 'Product' };
   return {
     title: product.name,
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = await loadProduct(params.slug);
+  const { slug } = await params;
+  const product = await loadProduct(slug);
   if (!product) notFound();
   return <ProductDetail product={product} />;
 }
