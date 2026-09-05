@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { AppError } from '../../lib/AppError';
 import { buildMeta, type PageMeta } from '../../lib/http';
 import { computeEmi } from '../emi/emi.service';
 import {
@@ -150,12 +151,10 @@ function mapProduct(p: ProductWithRelations): ProductSummaryDto {
 export async function listProducts(
   q: ListQuery,
 ): Promise<{ data: ProductSummaryDto[]; meta: PageMeta }> {
+  // Filtering, sorting and pagination all happen in the DB (see the repository),
+  // so the page returned here is already correctly ordered across the full set.
   const { items, total } = await findManyProducts(q);
-  let data = items.map(mapProduct);
-
-  if (q.sort === 'price_asc') data = [...data].sort((a, b) => a.minPrice - b.minPrice);
-  else if (q.sort === 'price_desc') data = [...data].sort((a, b) => b.minPrice - a.minPrice);
-
+  const data = items.map(mapProduct);
   return { data, meta: buildMeta(total, q.page, q.limit) };
 }
 
@@ -172,7 +171,14 @@ export async function getProductEmi(
   const p = await findProductBySlug(slug);
   if (!p) return null;
 
-  const chosen = variantId ? p.variants.find((v) => v.id === variantId) : undefined;
+  // A supplied variantId must belong to this product — a valid-but-wrong id is a
+  // 404, not a silent fallback to the base price.
+  let chosen: ProductWithRelations['variants'][number] | undefined;
+  if (variantId) {
+    chosen = p.variants.find((v) => v.id === variantId);
+    if (!chosen) throw AppError.notFound('Variant not found');
+  }
+
   const prices = p.variants.map((v) => Number(v.price));
   const principal = chosen
     ? Number(chosen.price)

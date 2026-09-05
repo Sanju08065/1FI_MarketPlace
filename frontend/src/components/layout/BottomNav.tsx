@@ -31,17 +31,17 @@ export function BottomNav() {
               {/* Purple underline is ABOVE the icon (between icon and top of nav) */}
               <span
                 className={cn(
-                  'mb-[2px] h-[2.5px] w-5 rounded-full bg-[#712CDC] transition-opacity duration-150',
+                  'mb-[2px] h-[2.5px] w-5 rounded-full bg-brand transition-opacity duration-150',
                   active ? 'opacity-100' : 'opacity-0',
                 )}
               />
               <Icon
                 className={cn(
                   'h-[23px] w-[23px]',
-                  active ? 'text-[#712CDC] stroke-[2.2]' : 'text-zinc-400 stroke-[1.75]',
+                  active ? 'text-brand stroke-[2.2]' : 'text-zinc-400 stroke-[1.75]',
                 )}
               />
-              <span className={cn('mt-[1px]', active ? 'text-[#712CDC]' : 'text-zinc-400')}>
+              <span className={cn('mt-[1px]', active ? 'text-brand' : 'text-zinc-400')}>
                 {title}
               </span>
             </Link>

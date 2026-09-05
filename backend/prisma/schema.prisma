@@ -33,6 +33,12 @@ model Product {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // NOTE: the `products` table also has a `search_vector tsvector` STORED
+  // generated column with a GIN index, used for full-text search. Prisma has
+  // no native type for it, so it is defined and maintained entirely in the SQL
+  // migrations (see migrations/*_add_search_index and *_search_add_description)
+  // and queried via $queryRaw in product.repository.ts. It weights name (A),
+  // brand (B) and description (C).
   @@index([category])
   @@index([isActive])
   @@map("products")

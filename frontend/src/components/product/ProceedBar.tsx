@@ -47,7 +47,7 @@ export function ProceedBar({
             'group relative flex h-[52px] flex-1 items-center justify-center gap-2.5 overflow-hidden rounded-full text-[15px] font-bold text-white transition-transform active:scale-[0.98]',
             outOfStock
               ? 'cursor-not-allowed bg-zinc-300 active:scale-100'
-              : 'bg-gradient-to-br from-[#8b45e8] to-[#5f2fd1] shadow-cta',
+              : 'bg-gradient-to-br from-brand-bright to-brand-600 shadow-cta',
           )}
         >
           {outOfStock ? (

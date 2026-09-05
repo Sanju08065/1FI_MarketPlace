@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { ZoomIn } from 'lucide-react';
-import { resolveImageUrl } from '@/lib/api';
+import { onImageError, resolveImageUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import type { Variant } from '@/schemas/product';
 
@@ -89,6 +89,7 @@ export function Gallery({
           src={image}
           alt={`${productName} — ${selected?.color ?? ''}`}
           draggable={false}
+          onError={onImageError}
           // fetchPriority="high" + eager loading eliminates the slow bar —
           // browser fetches this image immediately as a high-priority resource.
           loading="eager"

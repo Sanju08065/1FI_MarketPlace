@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { PackageSearch, ShoppingBag, TriangleAlert } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
-import { useDebounce } from '@/hooks/useDebounce';
 import { SearchBar } from './SearchBar';
 import { ProductCard } from './ProductCard';
 import { ProductListSkeleton } from '@/components/ui/Skeleton';
@@ -12,8 +11,8 @@ import { Button } from '@/components/ui/Button';
 
 export function MarketplaceTab() {
   const [search, setSearch] = useState('');
-  const debounced = useDebounce(search, 300);
-  const { data, isLoading, isError, error, refetch } = useProducts(debounced);
+  const { data, isLoading, isError, error, refetch } = useProducts(search);
+  const reduce = useReducedMotion();
 
   const products = data?.data ?? [];
 
@@ -58,12 +57,15 @@ export function MarketplaceTab() {
           className="flex flex-col gap-3"
           initial="hidden"
           animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+          variants={{ hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : 0.06 } } }}
         >
           {products.map((p) => (
             <motion.div
               key={p.id}
-              variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+              variants={{
+                hidden: { opacity: 0, y: reduce ? 0 : 12 },
+                show: { opacity: 1, y: 0 },
+              }}
             >
               <ProductCard product={p} />
             </motion.div>

@@ -4,79 +4,76 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { listProducts } from '@/lib/api';
 import { ProductTrie } from '@/lib/trie';
-import type { ProductSummary } from '@/schemas/product';
+import type { PageMeta, ProductSummary } from '@/schemas/product';
+import { useDebounce } from './useDebounce';
 
 /**
  * Marketplace product hook — two-layer strategy:
  *
  * Layer 1 — Network (once per session):
- *   Fetch the full catalogue once on mount with no search param.
- *   Cached by TanStack Query for 5 minutes (staleTime in providers.tsx).
- *   This is the ONLY network request for browsing.
+ *   Fetch the catalogue once on mount (no search param), cached by TanStack
+ *   Query. This is the only request needed for browsing.
  *
- * Layer 2 — Trie (every keystroke, zero network):
- *   Build a ProductTrie from the fetched catalogue.
- *   Every search query is answered by the Trie in O(m) time where
- *   m = query length, completely independent of catalogue size.
+ * Layer 2 — In-memory search (every keystroke, zero network, no debounce):
+ *   A prefix Trie answers queries in O(m). If the prefix Trie misses (e.g. an
+ *   infix like "phone" inside "iPhone") we fall back to a substring scan over
+ *   the (small) catalogue so local search stays correct, still with no network.
  *
- * Fallback:
- *   If the Trie returns 0 results for a non-empty query, fall back to the
- *   server search — catches products added after the initial fetch.
+ * Layer 3 — Server fallback (debounced):
+ *   Only when local search finds nothing for a real query do we hit the server
+ *   — this catches products added after the initial fetch. This is the ONLY
+ *   place a debounce is useful, so the local layers stay instant.
  */
 export function useProducts(search: string) {
-  // Step 1 — fetch the full catalogue once.
   const catalogueQuery = useQuery({
     queryKey: ['products', 'catalogue'],
     queryFn: () => listProducts({ limit: 50 }),
-    // Catalogue is stable — don't refetch within the same session.
-    // This also prevents the duplicate canceled request from React
-    // strict-mode double-mount in development.
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  // Stable array ref — empty array only when catalogue hasn't loaded yet.
-  const catalogue = useMemo(
-    () => catalogueQuery.data?.data ?? [],
-    [catalogueQuery.data],
-  );
+  // Stable array ref — empty only until the catalogue loads.
+  const catalogue = useMemo(() => catalogueQuery.data?.data ?? [], [catalogueQuery.data]);
 
-  // Build Trie from the catalogue (memoised until catalogue length changes).
-  const trie = useMemo(
-    () => ProductTrie.fromProducts(catalogue),
-    // Rebuild only when the number of products changes — avoids rebuild on
-    // every render while keeping the Trie current when new products are added.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [catalogue.length],
-  );
+  // Rebuild the Trie only when the catalogue data changes.
+  const trie = useMemo(() => ProductTrie.fromProducts(catalogue), [catalogue]);
 
-  // Local Trie search, O(m). No network.
+  // Instant local search on the raw query (no debounce).
+  const query = search.trim();
   const localResults: ProductSummary[] = useMemo(() => {
-    if (!search.trim()) return catalogue;
-    return trie.search(search);
-  }, [search, trie, catalogue]);
+    if (!query) return catalogue;
+    const prefixHits = trie.search(query);
+    if (prefixHits.length > 0) return prefixHits;
+    // Infix fallback for the small in-memory catalogue (e.g. "phone" → iPhone).
+    const q = query.toLowerCase();
+    return catalogue.filter((p) => `${p.name} ${p.brand}`.toLowerCase().includes(q));
+  }, [query, trie, catalogue]);
 
-  // Step 4 — if Trie returns nothing for a real query, try the server.
-  const needsFallback = search.trim().length > 0 && localResults.length === 0;
+  // Only the server fallback is debounced.
+  const debouncedQuery = useDebounce(query, 300);
+  const needsFallback = query.length > 0 && localResults.length === 0;
 
   const fallbackQuery = useQuery({
-    queryKey: ['products', 'search', search],
-    queryFn: () => listProducts({ search, limit: 20 }),
-    enabled: needsFallback,
+    queryKey: ['products', 'search', debouncedQuery],
+    queryFn: () => listProducts({ search: debouncedQuery, limit: 20 }),
+    enabled: needsFallback && debouncedQuery.length > 0,
   });
 
-  // Resolve final result set.
-  const data = needsFallback
-    ? fallbackQuery.data
-    : {
-        data: localResults,
-        meta: {
+  const data = useMemo((): { data: ProductSummary[]; meta: PageMeta } | undefined => {
+    if (needsFallback) return fallbackQuery.data;
+    const isSearching = query.length > 0;
+    // Browsing shows the true catalogue total from the server; a local search
+    // reports the number of matches it actually found.
+    const meta: PageMeta = isSearching
+      ? { total: localResults.length, page: 1, limit: localResults.length, totalPages: 1 }
+      : (catalogueQuery.data?.meta ?? {
           total: localResults.length,
           page: 1,
           limit: localResults.length,
           totalPages: 1,
-        },
-      };
+        });
+    return { data: localResults, meta };
+  }, [needsFallback, fallbackQuery.data, query, localResults, catalogueQuery.data]);
 
   return {
     data,

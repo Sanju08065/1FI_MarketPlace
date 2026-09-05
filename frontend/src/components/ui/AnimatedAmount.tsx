@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 /**
@@ -15,7 +15,12 @@ export function AnimatedAmount({
   value: string | number;
   className?: string;
 }) {
+  const reduce = useReducedMotion();
   const text = String(value);
+
+  // Skip the vertical roll for users who prefer reduced motion.
+  if (reduce) return <span className={className}>{text}</span>;
+
   return (
     <span className={cn('relative inline-flex overflow-hidden', className)}>
       <AnimatePresence mode="popLayout" initial={false}>

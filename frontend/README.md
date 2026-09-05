@@ -1,6 +1,6 @@
 # 1Fi Marketplace — Web
 
-Next.js 14 (App Router) · TypeScript · Tailwind CSS · Framer Motion · TanStack Query · Zod. Implements the 1Fi Shop page with the **1Fi Marketplace** tab and server-rendered product detail pages. See the [root README](../README.md) for the full overview.
+Next.js 15 (App Router) · React 18 · TypeScript · Tailwind CSS · Framer Motion · TanStack Query · Zod. Implements the 1Fi Shop page with the **1Fi Marketplace** tab and server-rendered product detail pages. See the [root README](../README.md) for the full overview.
 
 ## Quick start
 
@@ -33,7 +33,7 @@ src/
 │  ├─ shop/                 # TabBar · ComingSoon
 │  ├─ marketplace/          # SearchBar · ProductCard · MarketplaceTab
 │  └─ product/              # Gallery · VariantSelector · EmiPlanSelector · ProceedBar · ProceedSheet
-├─ hooks/                   # useProducts · useDebounce
-├─ lib/                     # api client · emi mirror · format · cn
+├─ hooks/                   # useProducts (catalogue + Trie search) · useDebounce
+├─ lib/                     # api client · emi mirror · trie (prefix search) · format · cn
 └─ schemas/                 # Zod schemas + inferred types
 ```

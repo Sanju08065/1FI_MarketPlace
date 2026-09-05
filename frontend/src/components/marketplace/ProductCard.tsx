@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import type { ProductSummary } from '@/schemas/product';
-import { resolveImageUrl } from '@/lib/api';
+import { onImageError, resolveImageUrl } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
 import { Swatch } from '@/components/ui/Swatch';
@@ -46,6 +46,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           alt={product.name}
           loading="lazy"
           decoding="async"
+          onError={onImageError}
           className="h-full w-full object-contain p-2"
         />
         {hasDiscount && (

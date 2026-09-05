@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowLeft, IndianRupee } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowLeft, IndianRupee, PackageX } from 'lucide-react';
 import type { EmiPlan, ProductDetail as ProductDetailType, Variant } from '@/schemas/product';
 import { recomputePlans } from '@/lib/emi';
 import { formatINR } from '@/lib/format';
@@ -17,26 +17,82 @@ import { TrustBadges } from '@/components/product/TrustBadges';
 import { ProceedBar } from '@/components/product/ProceedBar';
 import { ProceedSheet } from '@/components/product/ProceedSheet';
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08, delayChildren: 0.04 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } },
-};
+function BackBar({ product }: { product: ProductDetailType }) {
+  return (
+    <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur-md">
+      <Link
+        href="/shop"
+        aria-label="Back to shop"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-ink-soft transition-colors hover:bg-zinc-50"
+      >
+        <ArrowLeft className="h-[18px] w-[18px]" strokeWidth={2} />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-semibold text-ink">{product.name}</p>
+        <p className="truncate text-[11px] text-ink-muted">{product.brand}</p>
+      </div>
+    </header>
+  );
+}
+
+/** Shown when a product can't drive the purchase flow (no variants or plans). */
+function ProductUnavailable({ product }: { product: ProductDetailType }) {
+  return (
+    <AppShell className="bg-white">
+      <BackBar product={product} />
+      <div className="flex flex-col items-center px-6 py-20 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand">
+          <PackageX className="h-7 w-7" />
+        </div>
+        <h1 className="text-[18px] font-bold text-ink">{product.name} is unavailable</h1>
+        <p className="mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-ink-muted">
+          This product doesn&apos;t have any purchasable options right now. Please check back soon
+          or explore the rest of the marketplace.
+        </p>
+        <Link
+          href="/shop"
+          className="mt-6 rounded-full bg-brand px-5 py-3 text-[14px] font-bold text-white transition-colors hover:bg-brand-600"
+        >
+          Back to marketplace
+        </Link>
+      </div>
+    </AppShell>
+  );
+}
 
 export function ProductDetail({ product }: { product: ProductDetailType }) {
+  // A product needs at least one variant AND one EMI plan to be purchasable.
+  // Guarding here (before any purchase-flow hooks run) prevents an undefined
+  // variant/plan from crashing the page.
+  if (product.variants.length === 0 || product.emiPlans.length === 0) {
+    return <ProductUnavailable product={product} />;
+  }
+  return <PurchaseView product={product} />;
+}
+
+function PurchaseView({ product }: { product: ProductDetailType }) {
+  const reduce = useReducedMotion();
   const variants = product.variants;
+
+  const container = {
+    hidden: {},
+    show: {
+      transition: { staggerChildren: reduce ? 0 : 0.08, delayChildren: reduce ? 0 : 0.04 },
+    },
+  };
+  const item = {
+    hidden: { opacity: 0, y: reduce ? 0 : 16 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: reduce ? 0.2 : 0.42, ease: [0.22, 1, 0.36, 1] },
+    },
+  };
 
   // Single-pass reduce — avoids spreading the array onto the call stack.
   const basePrice = useMemo(
-    () =>
-      variants.length
-        ? variants.reduce((min, v) => Math.min(min, v.price), Infinity)
-        : product.minPrice,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [product.id],
+    () => variants.reduce((min, v) => Math.min(min, v.price), Infinity),
+    [variants],
   );
 
   const [selectedVariant, setSelectedVariant] = useState<Variant>(
@@ -44,24 +100,19 @@ export function ProductDetail({ product }: { product: ProductDetailType }) {
   );
 
   // EMI plans recomputed live for the selected variant's price.
-  // Depend on the variant price (primitive) and plan count rather than
-  // the array reference — avoids spurious recomputes when the same array
-  // is recreated from the server response.
   const plans = useMemo(
     () => recomputePlans(product.emiPlans, selectedVariant.price),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedVariant.price, product.emiPlans.length],
+    [product.emiPlans, selectedVariant.price],
   );
 
   // Map<id, EmiPlan> — O(1) lookup instead of O(n) find on every render.
-  const planMap = useMemo(
-    () => new Map(plans.map((p) => [p.id, p])),
-    [plans],
-  );
+  const planMap = useMemo(() => new Map(plans.map((p) => [p.id, p])), [plans]);
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
-    (plans.find((p) => p.isRecommended) ?? plans[0])?.id,
+    (plans.find((p) => p.isRecommended) ?? plans[0]).id,
   );
+  // recomputePlans preserves plan ids, so the selection stays valid across
+  // variant changes; fall back to the first plan only if the id ever misses.
   const selectedPlan: EmiPlan = planMap.get(selectedPlanId) ?? plans[0];
 
   const [sheetOpen, setSheetOpen] = useState(false);

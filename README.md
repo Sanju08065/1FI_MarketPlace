@@ -33,11 +33,11 @@ The UI matches the 1Fi app design language (brand purple `#712CDC`, rounded card
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14 (App Router) · React 18 · TypeScript · Tailwind CSS · Framer Motion · TanStack Query · Zod |
+| Frontend | Next.js 15 (App Router) · React 18 · TypeScript · Tailwind CSS · Framer Motion · TanStack Query · Zod |
 | Backend | Node.js · Express · TypeScript · Zod · Pino |
-| Database | PostgreSQL · Prisma ORM (schema, migrations, seed) |
+| Database | PostgreSQL · Prisma ORM (schema, migrations, seed) · GIN full-text search |
 | Tooling | ESLint · Prettier · Vitest + Supertest · Docker Compose · GitHub Actions CI |
-| Deploy | Vercel (frontend) · Render (backend + managed Postgres) |
+| Deploy | Render (frontend web service + backend web service + managed Postgres) |
 
 ---
 
@@ -261,14 +261,22 @@ Integration tests (Vitest + Supertest) cover the health check, product list/deta
 
 ## ☁️ Deployment
 
-**Frontend → Vercel**
-1. Import the repo, set **Root Directory = `frontend`**.
+Everything runs on **Render** — the blueprint in [`render.yaml`](render.yaml) provisions two
+web services (frontend + backend) and a managed Postgres.
+
+**Backend + DB**
+1. New → Blueprint → select the repo. It provisions a web service (root `backend`) + managed Postgres.
+2. Build runs `npm install && npm run build && prisma migrate deploy && npm run db:seed`; start runs the compiled server.
+3. Set `CORS_ORIGINS` to your frontend URL.
+
+**Frontend**
+1. Web service with **Root Directory = `frontend`**, build `npm install && npm run build`.
 2. Env: `NEXT_PUBLIC_API_URL=https://<your-api>.onrender.com`.
 
-**Backend + DB → Render** (blueprint in [`render.yaml`](render.yaml))
-1. New → Blueprint → select the repo. It provisions a web service (root `backend`) + a managed Postgres.
-2. Build runs `prisma migrate deploy` + seed; start runs the compiled server.
-3. Set `CORS_ORIGINS` to your Vercel URL.
+> **Dependency note:** Render installs with `NODE_ENV=production`, so a plain `npm install`
+> skips `devDependencies`. The backend's TypeScript build (`tsc`) and seed (`tsx`) therefore keep
+> their build-time tooling (`typescript`, `tsx`, runtime `@types`) in `dependencies` on purpose;
+> only test-only packages (e.g. `@types/supertest`) live in `devDependencies`.
 
 ---
 

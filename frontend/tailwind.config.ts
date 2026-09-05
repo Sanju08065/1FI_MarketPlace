@@ -18,6 +18,11 @@ const config: Config = {
           800: '#3f1d8c',
           900: '#2b1568',
           DEFAULT: '#712CDC',
+          // Named accents used across the shop UI (kept as tokens so the
+          // same hex isn't hardcoded in multiple components).
+          pale: '#f2eeff', // lavender tab-bar pill
+          bright: '#8b45e8', // CTA gradient start
+          deep: '#4e1fa3', // banner gradient start
         },
         ink: {
           DEFAULT: '#140e32',

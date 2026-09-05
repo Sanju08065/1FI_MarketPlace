@@ -36,8 +36,16 @@ export function computeEmi(
   cashback = 0,
 ): EmiComputation {
   const monthlyAmount = computeMonthly(principal, tenureMonths, annualRatePct);
-  const totalPayable = monthlyAmount * tenureMonths;
-  const interestPaid = Math.max(0, totalPayable - principal);
+  const roundedPrincipal = Math.round(principal);
+
+  // No-cost (0% APR, or a degenerate tenure): the customer repays exactly the
+  // principal, spread across the tenure. The displayed monthly is the rounded
+  // instalment; the final instalment absorbs the rounding remainder, so the
+  // total payable equals the principal and there is genuinely zero interest.
+  const noCost = annualRatePct <= 0 || tenureMonths <= 0;
+  const totalPayable = noCost ? roundedPrincipal : monthlyAmount * tenureMonths;
+  const interestPaid = Math.max(0, totalPayable - roundedPrincipal);
   const effectiveCost = totalPayable - cashback;
+
   return { principal, monthlyAmount, totalPayable, interestPaid, effectiveCost };
 }

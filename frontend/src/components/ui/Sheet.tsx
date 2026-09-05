@@ -1,30 +1,82 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
-/** Accessible bottom sheet with spring slide-up + backdrop. */
+/** Accessible bottom sheet: spring slide-up, backdrop, focus trap + restore. */
 export function Sheet({
   open,
   onClose,
   title,
+  ariaLabel,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
+  /** Accessible name when there is no visible title (keeps the dialog labelled). */
+  ariaLabel?: string;
   children: ReactNode;
 }) {
+  const reduce = useReducedMotion();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+
+    const getFocusable = (): HTMLElement[] => {
+      const root = dialogRef.current;
+      if (!root) return [];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+    };
+
+    // Move focus into the sheet once it has mounted.
+    const focusTimer = window.setTimeout(() => {
+      const focusables = getFocusable();
+      (focusables[0] ?? dialogRef.current)?.focus();
+    }, 0);
+
+    // Trap Tab within the dialog and close on Escape.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusables = getFocusable();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const activeEl = document.activeElement;
+      if (e.shiftKey && (activeEl === first || activeEl === dialogRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && activeEl === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
     window.addEventListener('keydown', onKey);
     return () => {
-      document.body.style.overflow = prev;
+      window.clearTimeout(focusTimer);
       window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      // Restore focus to whatever opened the sheet.
+      previouslyFocused?.focus?.();
     };
   }, [open, onClose]);
 
@@ -40,14 +92,16 @@ export function Sheet({
             onClick={onClose}
           />
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={title}
-            className="fixed inset-x-0 bottom-0 z-[70] mx-auto flex max-h-[90svh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-sheet"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 34, stiffness: 360 }}
+            aria-label={title ?? ariaLabel}
+            tabIndex={-1}
+            className="fixed inset-x-0 bottom-0 z-[70] mx-auto flex max-h-[90svh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-sheet outline-none"
+            initial={reduce ? { opacity: 0 } : { y: '100%' }}
+            animate={reduce ? { opacity: 1 } : { y: 0 }}
+            exit={reduce ? { opacity: 0 } : { y: '100%' }}
+            transition={reduce ? { duration: 0.15 } : { type: 'spring', damping: 34, stiffness: 360 }}
           >
             <div className="flex flex-col overflow-hidden">
               <div className="flex shrink-0 items-center justify-center pt-3">

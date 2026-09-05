@@ -30,6 +30,8 @@ export function VariantSelector({
             type="button"
             disabled={outOfStock}
             onClick={() => onSelect(v)}
+            aria-pressed={active}
+            aria-label={`${v.label}${outOfStock ? ' — sold out' : ''}`}
             whileTap={{ scale: outOfStock ? 1 : 0.95 }}
             className={cn(
               'relative flex items-center gap-2 rounded-2xl border px-3.5 py-2.5 text-[13px] font-semibold transition-colors duration-200',

@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
-import { resolveImageUrl } from '@/lib/api';
+import { onImageError, resolveImageUrl } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import type { EmiPlan, ProductDetail, Variant } from '@/schemas/product';
 
@@ -37,7 +37,12 @@ export function ProceedSheet({
   const hasCashback = plan.cashbackAmount > 0;
 
   return (
-    <Sheet open={open} onClose={onClose} title={confirmed ? undefined : 'Review your plan'}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={confirmed ? undefined : 'Review your plan'}
+      ariaLabel={confirmed ? 'Plan confirmed' : 'Review your plan'}
+    >
       {confirmed ? (
         <SuccessScreen plan={plan} onClose={onClose} />
       ) : (
@@ -224,6 +229,7 @@ function ReviewScreen({
           <img
             src={resolveImageUrl(variant.imageUrl ?? product.imageUrl)}
             alt={product.name}
+            onError={onImageError}
             className="h-full w-full object-contain p-1"
           />
         </div>

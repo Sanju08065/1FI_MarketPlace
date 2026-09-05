@@ -20,7 +20,7 @@ export function ShopContent() {
     <AppShell className="pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
       {/* ── Hero banner — full-bleed, keeps the image's 3:2 ratio so it fits any
           screen width with no cropping, no overlap and no layout shift ── */}
-      <section className="relative aspect-[3/2] w-full overflow-hidden bg-gradient-to-br from-[#4e1fa3] to-[#712CDC]">
+      <section className="relative aspect-[3/2] w-full overflow-hidden bg-gradient-to-br from-brand-deep to-brand">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={bannerSrc}
@@ -47,7 +47,13 @@ export function ShopContent() {
 
       {/* ── Tab content, padded inside the shell ── */}
       <div className="px-4 pt-4">
-        <div className="min-h-[52svh]">
+        <div
+          role="tabpanel"
+          id={`panel-${tab}`}
+          aria-labelledby={`tab-${tab}`}
+          tabIndex={0}
+          className="min-h-[52svh] outline-none"
+        >
           {tab === 'brands' && (
             <ComingSoon
               icon={<Store className="h-7 w-7" />}
