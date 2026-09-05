@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ZoomIn } from 'lucide-react';
 import { resolveImageUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -19,7 +19,13 @@ export function Gallery({
   productName: string;
   discountPercent: number;
 }) {
-  const selected = variants.find((v) => v.id === selectedId) ?? variants[0];
+  // Map<id, Variant> — O(1) lookup instead of O(n) Array.find on every
+  // pointer-move event (runs at 60fps during zoom/pan).
+  const variantMap = useMemo(
+    () => new Map(variants.map((v) => [v.id, v])),
+    [variants],
+  );
+  const selected = variantMap.get(selectedId) ?? variants[0];
   const image = resolveImageUrl(selected?.imageUrl);
 
   const [active, setActive] = useState(false);

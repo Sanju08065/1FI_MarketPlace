@@ -28,22 +28,41 @@ const item = {
 
 export function ProductDetail({ product }: { product: ProductDetailType }) {
   const variants = product.variants;
-  const basePrice = variants.length ? Math.min(...variants.map((v) => v.price)) : product.minPrice;
+
+  // Single-pass reduce — avoids spreading the array onto the call stack.
+  const basePrice = useMemo(
+    () =>
+      variants.length
+        ? variants.reduce((min, v) => Math.min(min, v.price), Infinity)
+        : product.minPrice,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [product.id],
+  );
 
   const [selectedVariant, setSelectedVariant] = useState<Variant>(
     variants.find((v) => v.inStock) ?? variants[0],
   );
 
   // EMI plans recomputed live for the selected variant's price.
+  // Depend on the variant price (primitive) and plan count rather than
+  // the array reference — avoids spurious recomputes when the same array
+  // is recreated from the server response.
   const plans = useMemo(
     () => recomputePlans(product.emiPlans, selectedVariant.price),
-    [product.emiPlans, selectedVariant.price],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedVariant.price, product.emiPlans.length],
+  );
+
+  // Map<id, EmiPlan> — O(1) lookup instead of O(n) find on every render.
+  const planMap = useMemo(
+    () => new Map(plans.map((p) => [p.id, p])),
+    [plans],
   );
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
     (plans.find((p) => p.isRecommended) ?? plans[0])?.id,
   );
-  const selectedPlan: EmiPlan = plans.find((p) => p.id === selectedPlanId) ?? plans[0];
+  const selectedPlan: EmiPlan = planMap.get(selectedPlanId) ?? plans[0];
 
   const [sheetOpen, setSheetOpen] = useState(false);
 

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import type { ProductSummary } from '@/schemas/product';
@@ -7,23 +8,32 @@ import { Badge } from '@/components/ui/Badge';
 import { Swatch } from '@/components/ui/Swatch';
 
 export function ProductCard({ product }: { product: ProductSummary }) {
-  const thumb = resolveImageUrl(product.variants[0]?.imageUrl ?? product.imageUrl);
-  const hasDiscount = product.discountPercent > 0;
+  // All derived values memoised on product.id — O(1) on re-render, only
+  // recomputes when the product object itself changes.
+  const { thumb, hasDiscount, fromMonthly, noCostExists, colours } = useMemo(() => {
+    const noCostPlans = product.emiPlans.filter((p) => p.isNoCost);
+    const monthly = noCostPlans.length
+      ? noCostPlans.reduce((min, p) => Math.min(min, p.monthlyAmount), Infinity)
+      : product.lowestMonthly;
 
-  const noCostPlans = product.emiPlans.filter((p) => p.isNoCost);
-  const fromMonthly = noCostPlans.length
-    ? Math.min(...noCostPlans.map((p) => p.monthlyAmount))
-    : product.lowestMonthly;
+    // Deduplicate colours with a Map — O(V) build, O(1) lookup, insertion-order
+    // preserved so swatches always render in the same order.
+    const colourMap = new Map<string, string>();
+    for (const v of product.variants) {
+      if (v.hexColor && !colourMap.has(v.hexColor)) {
+        colourMap.set(v.hexColor, v.color ?? '');
+      }
+    }
 
-  // Distinct available colours (deduped by hex).
-  const colours = Array.from(
-    new Map(
-      product.variants
-        .filter((v) => v.hexColor)
-        .map((v) => [v.hexColor as string, v.color ?? ''] as const),
-    ),
-    ([hex, name]) => ({ hex, name }),
-  );
+    return {
+      thumb: resolveImageUrl(product.variants[0]?.imageUrl ?? product.imageUrl),
+      hasDiscount: product.discountPercent > 0,
+      fromMonthly: monthly,
+      noCostExists: noCostPlans.length > 0,
+      colours: Array.from(colourMap, ([hex, name]) => ({ hex, name })),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
 
   return (
     <Link
@@ -61,7 +71,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
 
         {fromMonthly != null && (
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {noCostPlans.length > 0 && <Badge tone="brand">0% EMI</Badge>}
+            {noCostExists && <Badge tone="brand">0% EMI</Badge>}
             <span className="text-[12px] text-ink-muted">from {formatINR(fromMonthly)}/mo</span>
           </div>
         )}

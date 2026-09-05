@@ -109,8 +109,12 @@ function mapPlan(principal: number, p: ProductWithRelations['emiPlans'][number])
 
 function priceStats(variants: VariantDto[], mrp: number): { min: number; max: number } {
   if (variants.length === 0) return { min: mrp, max: mrp };
-  const prices = variants.map((v) => v.price);
-  return { min: Math.min(...prices), max: Math.max(...prices) };
+  // Single-pass reduce — avoids spreading the array onto the call stack
+  // and iterating twice (once for min, once for max).
+  return variants.reduce(
+    (acc, v) => ({ min: Math.min(acc.min, v.price), max: Math.max(acc.max, v.price) }),
+    { min: Infinity, max: -Infinity },
+  );
 }
 
 function mapProduct(p: ProductWithRelations): ProductSummaryDto {
@@ -119,7 +123,7 @@ function mapProduct(p: ProductWithRelations): ProductSummaryDto {
   const { min: minPrice, max: maxPrice } = priceStats(variants, mrp);
   const emiPlans = p.emiPlans.map((pl) => mapPlan(minPrice, pl));
   const lowestMonthly = emiPlans.length
-    ? Math.min(...emiPlans.map((e) => e.monthlyAmount))
+    ? emiPlans.reduce((min, e) => Math.min(min, e.monthlyAmount), Infinity)
     : null;
 
   return {
@@ -173,7 +177,7 @@ export async function getProductEmi(
   const principal = chosen
     ? Number(chosen.price)
     : prices.length
-      ? Math.min(...prices)
+      ? prices.reduce((min, pr) => Math.min(min, pr), Infinity)
       : Number(p.mrp);
 
   return {

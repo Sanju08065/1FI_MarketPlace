@@ -6,7 +6,7 @@ const INR = new Intl.NumberFormat('en-IN', {
 
 /** ₹1,34,900 */
 export function formatINR(amount: number): string {
-  return INR.format(Math.round(amount));
+  return INR.format(amount);
 }
 
 /** Discount percentage from MRP → price. */
