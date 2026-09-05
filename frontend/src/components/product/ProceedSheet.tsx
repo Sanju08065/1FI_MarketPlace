@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
@@ -19,8 +19,6 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
-const BRAND_COLORS = ['#712CDC', '#22c55e', '#f59e0b', '#ec4899', '#38bdf8', '#a855f7'];
-
 export function ProceedSheet({
   open,
   onClose,
@@ -35,37 +33,13 @@ export function ProceedSheet({
   plan: EmiPlan;
 }) {
   const [confirmed, setConfirmed] = useState(false);
-
-  useEffect(() => {
-    if (open) setConfirmed(false);
-  }, [open]);
-
-  // canvas-confetti celebration burst on confirm.
-  useEffect(() => {
-    if (!confirmed) return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      const confetti = (await import('canvas-confetti')).default;
-      if (cancelled) return;
-      const defaults = { origin: { y: 0.5 }, colors: BRAND_COLORS, zIndex: 200 };
-      const fire = (ratio: number, opts: Parameters<typeof confetti>[0]) =>
-        confetti({ ...defaults, ...opts, particleCount: Math.floor(180 * ratio) });
-      fire(0.25, { spread: 26, startVelocity: 55 });
-      fire(0.2, { spread: 60 });
-      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-      fire(0.1, { spread: 120, startVelocity: 45 });
-    }, 400);
-    return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [confirmed]);
-
+  useEffect(() => { if (open) setConfirmed(false); }, [open]);
   const hasCashback = plan.cashbackAmount > 0;
 
   return (
     <Sheet open={open} onClose={onClose} title={confirmed ? undefined : 'Review your plan'}>
       {confirmed ? (
-        <SuccessScreen onClose={onClose} />
+        <SuccessScreen plan={plan} onClose={onClose} />
       ) : (
         <ReviewScreen
           plan={plan}
@@ -79,78 +53,151 @@ export function ProceedSheet({
   );
 }
 
-// ── Lottie player using lottie-web directly ─────────────────────────────────
-// lottie-web plays the real JSON animation with the drawn checkmark,
-// expanding rings, and stars from the "Successful" animation.
+// ─────────────────────────────────────────────────────────────────────────────
+// "Locked In" success screen
+// Concept: your mutual-fund backed EMI plan is now SECURED — like a vault.
+// A branded shield draws itself, a lock snaps in, particles float upward.
+// All pure CSS + inline SVG — zero library, zero lag on mobile.
+// ─────────────────────────────────────────────────────────────────────────────
 
-function LottieSuccess() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    let anim: { destroy(): void } | null = null;
-
-    import('lottie-web').then((lottie) => {
-      if (!containerRef.current) return;
-      anim = lottie.default.loadAnimation({
-        container: containerRef.current,
-        renderer: 'canvas',
-        loop: false,
-        autoplay: true,
-        path: '/success.json',
-        rendererSettings: {
-          clearCanvas: true,
-          progressiveLoad: true,
-        },
-      });
-    });
-
-    return () => {
-      anim?.destroy();
-    };
-  }, []);
-
+function SuccessScreen({ plan, onClose }: { plan: EmiPlan; onClose: () => void }) {
   return (
-    <div
-      ref={containerRef}
-      className="mx-auto"
-      style={{ width: 200, height: 200 }}
-      aria-label="Payment confirmed animation"
-    />
-  );
-}
+    <div className="success-bg flex flex-col items-center overflow-hidden rounded-2xl bg-gradient-to-b from-[#1a0845] to-[#2d0e6e] px-6 py-8 text-center">
 
-// ── Success screen ───────────────────────────────────────────────────────────
+      {/* ── Particle field ──────────────────────────────────────── */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {[
+          { cls: 'p1', s: 8,  c: '#a78bfa', t: '22%', l: '14%' },
+          { cls: 'p2', s: 6,  c: '#712CDC', t: '35%', l: '72%' },
+          { cls: 'p3', s: 5,  c: '#c4b5fd', t: '58%', l: '28%' },
+          { cls: 'p4', s: 7,  c: '#8b5cf6', t: '68%', l: '80%' },
+          { cls: 'p5', s: 6,  c: '#a78bfa', t: '42%', l: '55%' },
+          { cls: 'p6', s: 5,  c: '#c4b5fd', t: '75%', l: '45%' },
+        ].map(({ cls, s, c, t, l }) => (
+          <span
+            key={cls}
+            className={`particle ${cls} absolute`}
+            style={{ width: s, height: s, backgroundColor: c, top: t, left: l }}
+          />
+        ))}
+      </div>
 
-function SuccessScreen({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center py-8 text-center">
-      <LottieSuccess />
-      <h3 className="mt-4 text-[22px] font-extrabold tracking-[-0.015em] text-ink">
-        Plan confirmed!
+      {/* ── Shield scene ────────────────────────────────────────── */}
+      <div className="relative flex h-[180px] w-[180px] items-center justify-center">
+
+        {/* Ambient glow */}
+        <div
+          aria-hidden
+          className="glow-anim absolute h-[180px] w-[180px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(113,44,220,0.55) 0%, transparent 70%)',
+          }}
+        />
+
+        {/* Orbit rings */}
+        <svg
+          aria-hidden
+          viewBox="0 0 180 180"
+          className="absolute inset-0 h-full w-full"
+        >
+          <circle
+            cx="90" cy="90" r="80"
+            fill="none" stroke="rgba(167,139,250,0.18)" strokeWidth="1"
+            strokeDasharray="6 6"
+            className="spin-ring-1"
+          />
+          <circle
+            cx="90" cy="90" r="64"
+            fill="none" stroke="rgba(167,139,250,0.12)" strokeWidth="1"
+            strokeDasharray="4 8"
+            className="spin-ring-2"
+          />
+        </svg>
+
+        {/* Shield SVG */}
+        <svg
+          viewBox="0 0 100 110"
+          fill="none"
+          className="relative h-[110px] w-[100px]"
+          aria-hidden
+        >
+          {/* Shield fill */}
+          <path
+            d="M50 8 L90 22 L90 55 C90 75 72 92 50 102 C28 92 10 75 10 55 L10 22 Z"
+            fill="url(#shieldGrad)"
+          />
+          {/* Shield stroke that draws itself */}
+          <path
+            d="M50 8 L90 22 L90 55 C90 75 72 92 50 102 C28 92 10 75 10 55 L10 22 Z"
+            fill="none"
+            stroke="rgba(167,139,250,0.9)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+            className="draw-shield"
+          />
+          {/* Lock shackle */}
+          <path
+            d="M40 48 C40 42 44 37 50 37 C56 37 60 42 60 48"
+            stroke="white"
+            strokeWidth="4"
+            strokeLinecap="round"
+            fill="none"
+            className="drop-lock"
+          />
+          {/* Lock body */}
+          <rect
+            x="36" y="48" width="28" height="22" rx="5"
+            fill="white"
+            className="drop-lock"
+          />
+          {/* Tick inside lock */}
+          <path
+            d="M44 59 L48 63 L57 54"
+            stroke="#712CDC"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            className="draw-tick"
+          />
+          <defs>
+            <linearGradient id="shieldGrad" x1="10" y1="8" x2="90" y2="102" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#5b21b6" />
+              <stop offset="1" stopColor="#7c3aed" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      {/* ── Text block ──────────────────────────────────────────── */}
+      <h3 className="success-text mt-5 text-[22px] font-extrabold tracking-[-0.015em] text-white">
+        Locked in.
       </h3>
-      <p className="mt-2 max-w-[28ch] text-[13px] leading-relaxed text-ink-muted">
-        Your EMI plan is locked in. In the full 1Fi app you&apos;d pledge your mutual funds next.
+      <p className="success-sub mt-2 max-w-[28ch] text-[13px] leading-relaxed text-purple-200">
+        {plan.isNoCost ? '0% interest · ' : `${plan.interestRate}% p.a. · `}
+        {plan.tenureMonths} months · {formatINR(plan.monthlyAmount)}/mo
       </p>
-      <Button className="mt-8 w-full" size="lg" onClick={onClose}>
+      <p className="success-sub max-w-[30ch] text-[12px] leading-relaxed text-purple-300/70"
+        style={{ animationDelay: '1.0s' }}>
+        Your mutual-fund backed EMI plan is secured.
+      </p>
+
+      {/* ── Done button ─────────────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="success-btn mt-8 w-full rounded-2xl border border-purple-400/40 bg-white/10 py-4 text-[15px] font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 active:scale-[0.98]"
+      >
         Done
-      </Button>
+      </button>
     </div>
   );
 }
 
-// ── Review screen ─────────────────────────────────────────────────────────────
+// ── Review screen (unchanged) ──────────────────────────────────────────────
 
 function ReviewScreen({
-  plan,
-  product,
-  variant,
-  hasCashback,
-  onConfirm,
+  plan, product, variant, hasCashback, onConfirm,
 }: {
   plan: EmiPlan;
   product: ProductDetail;
@@ -196,8 +243,7 @@ function ReviewScreen({
         <Row label="Total payable" value={formatINR(plan.totalPayable)} />
         {plan.isNoCost
           ? <Row label="Interest" value="₹0 · No-cost" />
-          : <Row label="Interest" value={formatINR(plan.interestPaid)} />
-        }
+          : <Row label="Interest" value={formatINR(plan.interestPaid)} />}
         {hasCashback && <Row label="Cashback" value={`− ${formatINR(plan.cashbackAmount)}`} />}
         <Row label="Effective cost" value={formatINR(plan.effectiveCost)} strong />
       </div>
