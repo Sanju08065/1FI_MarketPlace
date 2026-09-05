@@ -31,6 +31,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* Preconnect to the API so the TCP+TLS handshake happens in parallel
+            with page parse — shaves 200–400ms off the first API call on mobile. */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'} />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'} />
+      </head>
       <body className={`${inter.variable} ${mono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>

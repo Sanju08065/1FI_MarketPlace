@@ -94,8 +94,15 @@ export function Gallery({
           loading="eager"
           fetchPriority="high"
           decoding="async"
-          className="pointer-events-none absolute inset-0 h-full w-full animate-fade-in object-contain p-7 transition-transform duration-200 ease-out will-change-transform"
-          style={{ transform: `scale(${active ? ZOOM : 1})`, transformOrigin: origin }}
+          className="pointer-events-none absolute inset-0 h-full w-full animate-fade-in object-contain p-7 transition-transform duration-200 ease-out"
+          style={{
+            transform: `scale(${active ? ZOOM : 1})`,
+            transformOrigin: origin,
+            // Promote to GPU layer only while actively zooming/panning.
+            // A permanent will-change forces the browser to composite this
+            // element every frame even when nothing is moving.
+            willChange: active ? 'transform' : 'auto',
+          }}
         />
 
         {discountPercent > 0 && (

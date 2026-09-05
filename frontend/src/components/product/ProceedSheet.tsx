@@ -94,10 +94,14 @@ function LottieSuccess() {
       if (!containerRef.current) return;
       anim = lottie.default.loadAnimation({
         container: containerRef.current,
-        renderer: 'svg',
+        renderer: 'canvas',
         loop: false,
         autoplay: true,
         path: '/success.json',
+        rendererSettings: {
+          clearCanvas: true,
+          progressiveLoad: true,
+        },
       });
     });
 
