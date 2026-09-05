@@ -110,7 +110,7 @@ function LottieSuccess() {
     <div
       ref={containerRef}
       className="mx-auto"
-      style={{ width: 140, height: 140 }}
+      style={{ width: 200, height: 200 }}
       aria-label="Payment confirmed animation"
     />
   );
@@ -124,15 +124,15 @@ function SuccessScreen({
   onClose: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center py-6 text-center">
+    <div className="flex flex-col items-center py-8 text-center">
       <LottieSuccess />
-      <h3 className="mt-2 text-[22px] font-extrabold tracking-[-0.015em] text-ink">
+      <h3 className="mt-4 text-[22px] font-extrabold tracking-[-0.015em] text-ink">
         Plan confirmed!
       </h3>
       <p className="mt-2 max-w-[28ch] text-[13px] leading-relaxed text-ink-muted">
         Your EMI plan is locked in. In the full 1Fi app you&apos;d pledge your mutual funds next.
       </p>
-      <Button className="mt-6 w-full" size="lg" onClick={onClose}>
+      <Button className="mt-8 w-full" size="lg" onClick={onClose}>
         Done
       </Button>
     </div>
