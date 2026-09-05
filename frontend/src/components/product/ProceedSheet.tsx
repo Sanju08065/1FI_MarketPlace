@@ -65,13 +65,7 @@ export function ProceedSheet({
   return (
     <Sheet open={open} onClose={onClose} title={confirmed ? undefined : 'Review your plan'}>
       {confirmed ? (
-        <SuccessScreen
-          plan={plan}
-          product={product}
-          variant={variant}
-          onClose={onClose}
-          hasCashback={hasCashback}
-        />
+        <SuccessScreen onClose={onClose} />
       ) : (
         <ReviewScreen
           plan={plan}
@@ -125,82 +119,20 @@ function LottieSuccess() {
 // ── Success screen ───────────────────────────────────────────────────────────
 
 function SuccessScreen({
-  plan,
-  product,
-  variant,
   onClose,
-  hasCashback,
 }: {
-  plan: EmiPlan;
-  product: ProductDetail;
-  variant: Variant;
   onClose: () => void;
-  hasCashback: boolean;
 }) {
   return (
-    <div className="flex flex-col">
-      {/* Lottie animation — centered, fixed height so button never moves */}
-      <div className="flex flex-col items-center pb-1 pt-2">
-        <LottieSuccess />
-        <h3 className="mt-1 text-[21px] font-extrabold tracking-[-0.015em] text-ink">
-          Plan confirmed!
-        </h3>
-        <p className="mt-1 text-[13px] text-ink-muted">
-          Your EMI plan is locked in and ready to go.
-        </p>
-      </div>
-
-      {/* Receipt card */}
-      <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-100 bg-white">
-        {/* Product row */}
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50">
-            <img
-              src={resolveImageUrl(variant.imageUrl ?? product.imageUrl)}
-              alt={product.name}
-              className="h-full w-full object-contain p-1"
-              loading="eager"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-bold text-ink">{product.name}</p>
-            <p className="truncate text-[11px] text-ink-muted">{variant.label}</p>
-          </div>
-          <span className="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-600">
-            ✓ Done
-          </span>
-        </div>
-
-        <div className="mx-4 border-t border-dashed border-zinc-200" />
-
-        {/* EMI breakdown */}
-        <div className="px-4 py-2">
-          <div className="flex items-center justify-between py-2">
-            <span className="text-[13px] font-bold text-ink">Monthly instalment</span>
-            <span className="text-[15px] font-extrabold text-brand">
-              {formatINR(plan.monthlyAmount)}
-              <span className="text-[11px] font-medium text-ink-muted">/mo</span>
-            </span>
-          </div>
-          <div className="divide-y divide-zinc-100">
-            <Row label="Duration" value={`${plan.tenureMonths} months`} />
-            <Row label="Interest" value={plan.isNoCost ? '0% · No-cost EMI' : `${plan.interestRate}% p.a.`} />
-            <Row label="Total payable" value={formatINR(plan.totalPayable)} />
-            {hasCashback && <Row label="Cashback" value={`− ${formatINR(plan.cashbackAmount)}`} />}
-            <Row label="Effective cost" value={formatINR(plan.effectiveCost)} strong />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 border-t border-zinc-100 bg-brand-50/50 py-2.5">
-          <ShieldCheck className="h-3.5 w-3.5 text-brand" />
-          <span className="text-[11px] font-semibold text-brand">
-            Backed by mutual funds · No CIBIL impact
-          </span>
-        </div>
-      </div>
-
-      {/* Done button — always visible at the bottom */}
-      <Button className="mt-4 w-full" size="lg" onClick={onClose}>
+    <div className="flex flex-col items-center py-6 text-center">
+      <LottieSuccess />
+      <h3 className="mt-2 text-[22px] font-extrabold tracking-[-0.015em] text-ink">
+        Plan confirmed!
+      </h3>
+      <p className="mt-2 max-w-[28ch] text-[13px] leading-relaxed text-ink-muted">
+        Your EMI plan is locked in. In the full 1Fi app you&apos;d pledge your mutual funds next.
+      </p>
+      <Button className="mt-6 w-full" size="lg" onClick={onClose}>
         Done
       </Button>
     </div>
