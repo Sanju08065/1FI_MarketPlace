@@ -89,6 +89,11 @@ export function Gallery({
           src={image}
           alt={`${productName} — ${selected?.color ?? ''}`}
           draggable={false}
+          // fetchPriority="high" + eager loading eliminates the slow bar —
+          // browser fetches this image immediately as a high-priority resource.
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="pointer-events-none absolute inset-0 h-full w-full animate-fade-in object-contain p-7 transition-transform duration-200 ease-out will-change-transform"
           style={{ transform: `scale(${active ? ZOOM : 1})`, transformOrigin: origin }}
         />

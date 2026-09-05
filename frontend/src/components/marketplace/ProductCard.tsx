@@ -45,6 +45,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           src={thumb}
           alt={product.name}
           loading="lazy"
+          decoding="async"
           className="h-full w-full object-contain p-2"
         />
         {hasDiscount && (

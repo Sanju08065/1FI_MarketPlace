@@ -70,7 +70,7 @@ export function ProductDetail({ product }: { product: ProductDetailType }) {
   const hasDiscount = product.mrp > price;
 
   return (
-    <AppShell className="bg-white pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <AppShell className="bg-white pb-[calc(7rem+env(safe-area-inset-bottom))]">
       {/* Sticky top bar */}
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur-md">
         <Link

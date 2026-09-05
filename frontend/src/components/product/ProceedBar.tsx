@@ -25,7 +25,7 @@ export function ProceedBar({
       transition={{ type: 'spring', damping: 26, stiffness: 280, delay: 0.15 }}
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center"
     >
-      <div className="safe-bottom flex w-full max-w-[480px] items-center gap-3 border-t border-zinc-100 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(20,14,50,0.06)] backdrop-blur-md sm:border-x sm:border-zinc-200/70">
+      <div className="flex w-full max-w-[480px] items-center gap-3 border-t border-zinc-100 bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(20,14,50,0.06)] sm:border-x sm:border-zinc-200/70">
         {/* Price block */}
         <div className="min-w-0 shrink-0">
           <p className="flex items-baseline gap-0.5 text-[19px] font-extrabold leading-none text-ink">
