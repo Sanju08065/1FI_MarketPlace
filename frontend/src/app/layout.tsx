@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description:
     'The 1Fi Marketplace — buy the products you love on no-cost EMIs backed by your mutual funds. No CIBIL check, instant approval.',
   applicationName: '1Fi',
+  icons: {
+    icon: 'https://pay.1fi.in/favicon/favicon.svg',
+    shortcut: 'https://pay.1fi.in/favicon/favicon.svg',
+    apple: 'https://pay.1fi.in/favicon/favicon.svg',
+  },
 };
 
 export const viewport: Viewport = {
