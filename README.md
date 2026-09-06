@@ -22,7 +22,7 @@ The UI matches the 1Fi app design language (brand purple `#712CDC`, rounded card
 
 - **Correct EMI engine** — EMI plans are stored as *templates* (tenure + rate + cashback). The monthly instalment is **computed from the selected variant’s real price**, both on the server and (instantly) on the client when you switch variants.
 - **Type-safe end to end** — TypeScript everywhere, Zod validation at every boundary (env, requests, and API responses on the client).
-- **Layered backend** — `route → controller → service → repository → Prisma`, centralised errors, structured logging, security middleware, Swagger docs, integration tests.
+- **Layered backend** — `route → controller → service → repository → Prisma`, centralised errors, structured logging, security middleware, Swagger docs, unit + integration tests.
 - **Server-rendered product pages** — unique URLs (`/products/apple-iphone-16-pro`), SSR + per-product SEO metadata.
 - **Self-hosted images** — product images are stored in Postgres and served through the API, so the demo has **no broken CDN links**.
 - **Polished, animated UI** — Framer Motion transitions, skeleton loading, empty/error states, a bottom-sheet checkout, full keyboard/a11y support.
@@ -63,8 +63,8 @@ The UI matches the 1Fi app design language (brand purple `#712CDC`, rounded card
 │  └─ src/
 │     ├─ app/               # /shop · /products/[slug] · layout · providers
 │     ├─ components/        # ui · layout · shop · marketplace · product
-│     ├─ hooks/             # useProducts · useDebounce
-│     ├─ lib/               # api client · emi mirror · format · cn
+│     ├─ hooks/             # useProducts (catalogue + Trie search) · useDebounce
+│     ├─ lib/               # api client · emi mirror · trie (prefix search) · format · cn
 │     └─ schemas/           # Zod schemas + inferred types
 ├─ docker-compose.yml       # local PostgreSQL
 └─ .github/workflows/ci.yml # lint · typecheck · test · build
@@ -179,8 +179,8 @@ Base URL: `http://localhost:4000`. All endpoints return a consistent envelope: `
       }
     ],
     "emiPlans": [
-      { "tenureMonths": 3, "interestRate": 0, "isNoCost": true, "monthlyAmount": 44967, "totalPayable": 134901, "cashbackAmount": 0,   "isRecommended": false },
-      { "tenureMonths": 6, "interestRate": 0, "isNoCost": true, "monthlyAmount": 22484, "totalPayable": 134904, "cashbackAmount": 500, "cashbackLabel": "₹500 cashback", "isRecommended": true }
+      { "tenureMonths": 3, "interestRate": 0, "isNoCost": true, "monthlyAmount": 44967, "totalPayable": 134900, "interestPaid": 0, "cashbackAmount": 0,   "effectiveCost": 134900, "isRecommended": false },
+      { "tenureMonths": 6, "interestRate": 0, "isNoCost": true, "monthlyAmount": 22484, "totalPayable": 134900, "interestPaid": 0, "cashbackAmount": 500, "cashbackLabel": "₹500 cashback", "effectiveCost": 134400, "isRecommended": true }
     ]
   }
 }
@@ -190,11 +190,12 @@ Base URL: `http://localhost:4000`. All endpoints return a consistent envelope: `
 
 ```
 principal = selected variant price
-no-cost (rate = 0):   monthly = ceil(principal / tenure)
-interest-bearing:     r = rate / 1200
-                      monthly = round( principal · r · (1+r)^n / ((1+r)^n − 1) )
-totalPayable  = monthly × tenure
-interestPaid  = max(0, totalPayable − principal)
+no-cost (rate = 0):   monthly      = ceil(principal / tenure)   (final instalment absorbs rounding)
+                      totalPayable = principal                  (genuinely zero interest)
+interest-bearing:     r            = rate / 1200
+                      monthly      = round( principal · r · (1+r)^n / ((1+r)^n − 1) )
+                      totalPayable = monthly × tenure
+interestPaid  = max(0, totalPayable − principal)   (0 for no-cost)
 effectiveCost = totalPayable − cashback
 ```
 
@@ -255,7 +256,7 @@ Open **http://localhost:3000/shop** → the **1Fi Marketplace** tab.
 cd backend && npm test
 ```
 
-Integration tests (Vitest + Supertest) cover the health check, product list/detail, the EMI computation (`ceil(price / tenure)` for no-cost), variant recompute, and 404 handling.
+**23 tests.** Unit tests cover the EMI engine (reducing-balance formula + no-cost = zero interest); integration tests (Vitest + Supertest) cover the health check, product list/detail, price sorting across the full set, full-text search, pagination + validation (`422`), variant recompute, an unknown-variant `404`, and image serving (ETag / `304`).
 
 ---
 

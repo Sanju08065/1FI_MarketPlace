@@ -1,6 +1,6 @@
 # 1Fi Marketplace — API
 
-TypeScript · Express · Prisma · PostgreSQL. Layered architecture with an EMI computation engine, image serving from Postgres, Swagger docs and integration tests. See the [root README](../README.md) for the full project overview, schema and API examples.
+TypeScript · Express · Prisma · PostgreSQL. Layered architecture with an EMI computation engine, GIN full-text search, image serving from Postgres, Swagger docs, and unit + integration tests. See the [root README](../README.md) for the full project overview, schema and API examples.
 
 ## Quick start
 
@@ -21,7 +21,7 @@ npm run dev                  # http://localhost:4000  (docs at /api/docs)
 | `npm run db:migrate` | Create + apply Prisma migration |
 | `npm run db:seed` | Seed products, variants, EMI plans, images |
 | `npm run typecheck` / `lint` | Quality gates |
-| `npm test` | Vitest + Supertest integration tests |
+| `npm test` | Vitest — EMI unit tests + Supertest integration tests |
 
 ## Layout
 

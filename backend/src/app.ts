@@ -18,7 +18,7 @@ export function createApp(): Express {
   const app = express();
 
   app.disable('x-powered-by');
-  app.set('trust proxy', 1); // correct client IPs behind Render/Vercel proxies
+  app.set('trust proxy', 1); // correct client IPs behind Render's proxy
 
   // Security & platform middleware
   app.use(

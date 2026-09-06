@@ -31,6 +31,7 @@ export const openapiSpec = {
         ],
         responses: {
           '200': { description: 'Paginated product list' },
+          '422': { description: 'Invalid query parameters' },
         },
       },
     },
@@ -42,6 +43,7 @@ export const openapiSpec = {
         responses: {
           '200': { description: 'Product detail with variants + EMI plans' },
           '404': { description: 'Product not found' },
+          '422': { description: 'Invalid slug' },
         },
       },
     },
@@ -55,7 +57,8 @@ export const openapiSpec = {
         ],
         responses: {
           '200': { description: 'EMI plans for the chosen variant price' },
-          '404': { description: 'Product not found' },
+          '404': { description: 'Product or variant not found' },
+          '422': { description: 'Invalid variantId' },
         },
       },
     },
@@ -69,6 +72,7 @@ export const openapiSpec = {
         responses: {
           '200': { description: 'Image bytes', content: { 'image/*': {} } },
           '404': { description: 'Image not found' },
+          '422': { description: 'Invalid image id' },
         },
       },
     },
